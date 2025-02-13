@@ -5,32 +5,32 @@ on:
 #    branches:
 #      - main
 jobs:
-    build:
-      name: push docker image to docker hub
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v2
+  build:
+    name: push docker image to docker hub
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+    
+      - name: Get short SHA
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV        
+       
+      - name: login to docker hub
+        id: docker-hub
+        env:
+          username: ${{secrets.DOCKERHUB_USERNAME}}
+          password: ${{secrets.DOCKERHUB_TOKEN}}
+        run: |
+          docker login -u $username -p $password 
       
-        - name: Get short SHA
-          id: vars
-          run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV        
+      - name: build the docker image
+        id: build-docker-image
+        run: |
+          ls -la 
+          docker build . -f Dockerfile -t ${{ secrets.DOCKERHUB_USERNAME }}/tasky-app:latest -t ${{ secrets.DOCKERHUB_USERNAME }}/tasky-app:${{ env.sha_short }}
         
-        - name: login to docker hub
-          id: docker-hub
-          env:
-            username: ${{secrets.DOCKERHUB_USERNAME}}
-            password: ${{secrets.DOCKERHUB_TOKEN}}
-          run: |
-            docker login -u $username -p $password 
-        
-        - name: build the docker image
-          id: build-docker-image
-          run: |
-            ls -la 
-            docker build . -f Dockerfile -t ${{ secrets.DOCKERHUB_USERNAME }}/tasky-app:latest -t ${{ secrets.DOCKERHUB_USERNAME }}/tasky-app:${{ env.sha_short }}
-        
-        - name: push the docker image
-          id: push-docker-image
-          run: |
-            docker push ${{ secrets.DOCKERHUB_USERNAME }}/tasky-app:latest
-            docker push ${{ secrets.DOCKERHUB_USERNAME }}/tasky-app:${{ env.sha_short }}
+      - name: push the docker image
+        id: push-docker-image
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/tasky-app:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/tasky-app:${{ env.sha_short }}
