@@ -10,6 +10,11 @@ jobs:
       runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v2
+        
+        - name: Get short SHA
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV        
+        
         - name: login to docker hub
           id: docker-hub
           env:
@@ -17,11 +22,15 @@ jobs:
             password: ${{secrets.DOCKERHUB_TOKEN}}
           run: |
             docker login -u $username -p $password 
+        
         - name: build the docker image
           id: build-docker-image
           run: |
             ls -la 
-            docker build . -f Dockerfile -t crzykidd/tasky-app:latest
+            docker build . -f Dockerfile -t ${{ secrets.DOCKERHUB_USERNAME }}/tasky-app:latest -t ${{ secrets.DOCKERHUB_USERNAME }}/tasky-app:${{ env.sha_short }}
+        
         - name: push the docker image
           id: push-docker-image
-          run: docker push ${{secrets.DOCKERHUB_USERNAME}}/tasky-app:latest
+          run: |
+            docker push ${{ secrets.DOCKERHUB_USERNAME }}/tasky-app:latest
+            docker push ${{ secrets.DOCKERHUB_USERNAME }}/tasky-app:${{ env.sha_short }}
