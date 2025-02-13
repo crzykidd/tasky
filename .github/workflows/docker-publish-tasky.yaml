@@ -1,9 +1,7 @@
 name: Build Tasky and push to dockerhub
 on:
-  workflow_dispatch:
-#  push:
-#    branches:
-#      - main
+  workflow_dispatch:  # Manual trigger
+  pull_request:       # Triggers on new PRs
 jobs:
   build:
     name: push docker image to docker hub
